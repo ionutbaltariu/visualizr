@@ -3,4 +3,39 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    border-width: 1%;
+    border-style: groove;
+    padding: 2%;
+    border-radius: 3%;
+    border-color: black;
+    text-align: center;
+}
+
+.centered_horizontally_div {
+    margin: auto;
+    width: 50%;
+    text-align: center;
+}
+
+body {
+    background-color: #b8c6db;
+    background-image: linear-gradient(315deg, #b8c6db 0%, #f5f7fa 74%);
+}
+
+html * {
+    color: #000 !important;
+    font-family: Georgia, serif !important;
+}
+
+.transparent {
+    background: transparent;
+}
+
+.styled_input {
+    border-color: lightgrey;
+    border-radius: 10%;
+}
+
+.styled_input:hover {
+    background-color: lightsteelblue;
 }

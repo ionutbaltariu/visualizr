@@ -10,18 +10,25 @@
 </head>
 
 <body onload="onload()">
+    <div class="centered_horizontally_div">
+        <h1>
+            Covid data visualiser
+        </h1>
+    </div>
     <div class="centered_div">
-        <label for="cars">Choose info for x axis:</label>
-        <select name="x_vals" id="x_values" onchange="updateSelectedXValue()">
-            </select>
+        <div id="my_dataviz"></div>
+
+        <label for="x_values">x: </label>
+        <select name="x_vals" id="x_values" onchange="updateSelectedXValue()" class="transparent"></select>
+        <label for="buttonXlim">Limit: </label>
+        <input type="number" id="buttonXlim" class="transparent styled_input">
 
         <br>
-        <label for="cars">Choose info for y axis:</label>
 
-        <select name="y_vals" id="y_values" onchange="updateSelectedYValue()">
-            </select>
-
-        <div id="my_dataviz"></div>
+        <label for="y_values">y:</label>
+        <select name="y_vals" id="y_values" onchange="updateSelectedYValue()" class="transparent"></select>
+        <label for="buttonYlim">Limit: </label>
+        <input type="number" id="buttonYlim" class="transparent styled_input">
     </div>
 </body>
 

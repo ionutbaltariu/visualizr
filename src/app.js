@@ -4,27 +4,44 @@ let selected_y = "new_cases_today";
 let x_vals_holder = [];
 let y_vals_holder = [];
 let selection_options = [];
-let data = [];
 
-function updateSelectedXValue() {
-    selected_x = document.getElementById("x_values").value;
-    x_vals_holder = [];
-    json_data.covid_romania.forEach(entry => {
+/* set the dimensions and margins of the graph */
+const margin = {
+        top: 10,
+        right: 30,
+        bottom: 30,
+        left: 60
+    },
+    width = 630 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
+function populateYValuesHolder(source) {
+    source.forEach(entry => {
+        if (entry != 0 && entry != null) {
+            y_vals_holder.push(entry[selected_y]);
+        }
+    });
+}
+
+function populateXValuesHolder(source) {
+    source.forEach(entry => {
         if (entry != 0 && entry != null) {
             x_vals_holder.push(entry[selected_x]);
         }
     });
+}
+
+function updateSelectedXValue() {
+    x_vals_holder = [];
+    selected_x = document.getElementById("x_values").value;
+    populateXValuesHolder(json_data.covid_romania);
     init();
 }
 
 function updateSelectedYValue() {
     selected_y = document.getElementById("y_values").value;
     y_vals_holder = [];
-    json_data.covid_romania.forEach(entry => {
-        if (entry != 0 && entry != null) {
-            y_vals_holder.push(entry[selected_y]);
-        }
-    });
+    populateYValuesHolder(json_data.covid_romania);
     init();
 }
 
@@ -34,7 +51,7 @@ async function onload() {
         json_data = await promiseResponse.json();
         selection_options = Reflect.ownKeys(json_data.covid_romania[0]);
         /* delete unusable data in plots */
-        selection_options = selection_options.splice(0, selection_options.length - 3);
+        selection_options = selection_options.splice(1, selection_options.length - 4);
 
 
         selection_options.forEach(option => {
@@ -46,17 +63,8 @@ async function onload() {
         document.getElementById("x_values").value = selected_x;
         document.getElementById("y_values").value = selected_y;
 
-        json_data.covid_romania.forEach(entry => {
-            if (entry != 0 && entry != null) {
-                y_vals_holder.push(entry[selected_y]);
-            }
-        });
-
-        json_data.covid_romania.forEach(entry => {
-            if (entry != 0 && entry != null) {
-                x_vals_holder.push(entry[selected_x]);
-            }
-        });
+        populateXValuesHolder(json_data.covid_romania);
+        populateYValuesHolder(json_data.covid_romania);
 
         init();
     } catch (error) {
@@ -66,8 +74,18 @@ async function onload() {
 }
 
 function init() {
+    /* 
+    on each axis variable change, we remove the points that contain null as either x or y 
+    directly from the source 
+    */
+    let filtered_data = json_data.covid_romania.filter((d) => { return (d[selected_x] !== null) && (d[selected_y] !== null); });
+
+    /* we set the limits of both axis to the maximum of the values of each axis */
+    document.getElementById("buttonXlim").value = Math.max(...x_vals_holder);
+    document.getElementById("buttonYlim").value = Math.max(...y_vals_holder);
     /* delete whatever was drawn before */
     d3.select("#my_dataviz").selectAll("*").remove();
+
     /* create a tooltip */
     var tooltip = d3.select("#my_dataviz")
         .append("div")
@@ -80,9 +98,10 @@ function init() {
         .style("padding", "5px")
         .style("position", "absolute")
 
-    /* Three function that change the tooltip when user hover / move / leave a cell */
+    /* Three functions that change the tooltip when user hover / move / leave a cell */
     const mouseover = function(event, d) {
-        tooltip.style("opacity", 1)
+        tooltip.style("opacity", 1);
+        d3.select(this).attr("r", 1.5).style("fill", "red");
     }
     const mousemove = function(event, d) {
         tooltip
@@ -91,18 +110,23 @@ function init() {
             .style("top", (event.y) / 2 + "px")
     }
     const mouseleave = function(d) {
-        tooltip.style("opacity", 0)
+        tooltip.style("opacity", 0);
+        setTimeout(() => {
+            d3.select(this)
+                .attr("r", 1.5)
+                .style("fill", "#69b3a2");
+        }, 500);
     }
 
-    /* set the dimensions and margins of the graph */
-    const margin = {
-            top: 10,
-            right: 30,
-            bottom: 30,
-            left: 60
-        },
-        width = 460 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
+    const onclick = function(d) {
+        xVal = d3.select(this).attr("x");
+        yVal = d3.select(this).attr("y");
+        document.getElementById("buttonXlim").value = xVal;
+        document.getElementById("buttonYlim").value = yVal;
+
+        updatePlotX(xVal);
+        updatePlotY(yVal);
+    }
 
     /* append the svg object to the body of the page */
     const svg = d3.select("#my_dataviz")
@@ -116,7 +140,7 @@ function init() {
     const x = d3.scaleLinear()
         .domain([0, Math.max(...x_vals_holder)])
         .range([0, width]);
-    svg.append("g")
+    const xAxis = svg.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(d3.axisBottom(x));
 
@@ -125,16 +149,23 @@ function init() {
         .domain([0, Math.max(...y_vals_holder)])
         .range([height, 0]);
 
-    svg.append("g")
+    const yAxis = svg.append("g")
         .call(d3.axisLeft(y));
 
     /* Add dots */
+    /* x and y attributes are used for the window resize functionality */
     svg.append('g')
         .selectAll("dot")
-        .data(json_data.covid_romania)
+        .data(filtered_data)
         .join("circle")
+        .attr("x", function(d) {
+            return d[selected_x];
+        })
         .attr("cx", function(d) {
             return x(d[selected_x]);
+        })
+        .attr("y", function(d) {
+            return d[selected_y];
         })
         .attr("cy", function(d) {
             return y(d[selected_y]);
@@ -144,23 +175,36 @@ function init() {
         .on("mouseover", mouseover)
         .on("mousemove", mousemove)
         .on("mouseleave", mouseleave)
+        .on("click", onclick);
 
-    /* Add axis labels */
-    // x axis
-    svg.append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "end")
-        .attr("x", width)
-        .attr("y", height - 6)
-        .text(selected_x.replace(/_/g, " "));
+    function updatePlotX(xlim) {
+        x.domain([0, xlim]);
+        xAxis.transition().duration(1000).call(d3.axisBottom(x));
 
-    // y axis
-    svg.append("text")
-        .attr("class", "y label")
-        .attr("text-anchor", "end")
-        .attr("y", 6)
-        .attr("dy", ".75em")
-        .attr("transform", `translate(110)`)
-        .text(selected_y.replace(/_/g, " "));
+        svg.selectAll("circle")
+            .data(filtered_data)
+            .transition()
+            .duration(1000)
+            .attr("cx", function(d) { return x(d[selected_x]); })
+            .attr("cy", function(d) { return y(d[selected_y]); });
+    }
 
+    function updatePlotY(ylim) {
+        y.domain([0, ylim]);
+        yAxis.transition().duration(1000).call(d3.axisLeft(y));
+
+        svg.selectAll("circle")
+            .data(filtered_data)
+            .transition()
+            .duration(1000)
+            .attr("cx", function(d) { return x(d[selected_x]); })
+            .attr("cy", function(d) { return y(d[selected_y]); });
+    }
+
+    const updatePlotXEvent = updatePlotX.bind(this);
+    const updatePlotYEvent = updatePlotY.bind(this);
+
+    // Add an event listener to the button created in the html part
+    d3.select("#buttonXlim").on("input", updatePlotXEvent);
+    d3.select("#buttonYlim").on("input", updatePlotYEvent);
 }
