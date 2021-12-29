@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Data Visualisation</title>
     <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="https://unpkg.com/d3-v6-tip@1.0.6/build/d3-v6-tip.js"></script>
     <script src="app.js"></script>
     <link rel="stylesheet" href="app.css">
 </head>
@@ -16,6 +17,7 @@
         </h1>
     </div>
     <div class="centered_div">
+        <p id="selected_date"></p>
         <div id="my_dataviz"></div>
 
         <label for="x_values">x: </label>
@@ -32,11 +34,24 @@
         <br>
         <label for="resizeOnClickEnabler">Resize on point click: </label>
         <input type="checkbox" id="resizeOnClickEnabler" class="styled_checkbox" onclick="onPointClickResize()">
+        <br>
+
+        <label for="showMoreDetails">Show more details on click: </label>
+        <input type="checkbox" id="showMoreDetails" class="styled_checkbox" onclick="onShowMoreDetailsSwitch()" checked>
+        <br>
+
+        <label for="showCasesPerCountyMap">Show cases per county on click: </label>
+        <input type="checkbox" id="showCasesPerCountyMap" class="styled_checkbox" onclick="onShowCasesPerCountyMapSwitch()" checked>
 
     </div>
-    <div id="specific_data_placeholder" class="right_anchored_div" hidden>
+
+    <div id="specific_data_placeholder" class="left_sticky_div" hidden>
         <p id="point_data_placeholder"></p>
     </div>
+    <div class="right_sticky_div">
+        <div id="my_dataviz_geojson" hidden></div>
+    </div>
+
 </body>
 
 </html>

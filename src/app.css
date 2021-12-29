@@ -40,21 +40,37 @@ html * {
     background-color: lightsteelblue;
 }
 
-.right_anchored_div {
+#point_data_placeholder {
+    text-align: left;
+    font-size: 12;
+}
+
+.right_sticky_div {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 0;
+    margin-right: 5%;
+}
+
+.left_sticky_div {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
     padding: 2%;
+    margin-left: 5%;
     border-width: 1%;
     border-style: groove;
     border-radius: 3%;
     border-color: black;
-    margin: 0;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    max-width: 33%;
-    padding: 1%;
 }
 
-#point_data_placeholder {
-    text-align: left;
-    font-size: 12;
+.d3-tip {
+    background-color: white;
+    border: solid;
+    border-width: 2px;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
 }

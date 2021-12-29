@@ -24,5 +24,11 @@ async def read_json():
         raw_json = json.loads(f.read())
         return JSONResponse(content=raw_json)
 
+@app.get("/romania_map")
+async def read_geojson():
+        with open("./../data/romania.geojson", "r") as f:
+            raw_json = json.loads(f.read())
+            return JSONResponse(content=raw_json)
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
