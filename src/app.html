@@ -29,6 +29,13 @@
         <select name="y_vals" id="y_values" onchange="updateSelectedYValue()" class="transparent"></select>
         <label for="buttonYlim">Limit: </label>
         <input type="number" id="buttonYlim" class="transparent styled_input">
+        <br>
+        <label for="resizeOnClickEnabler">Resize on point click: </label>
+        <input type="checkbox" id="resizeOnClickEnabler" class="styled_checkbox" onclick="onPointClickResize()">
+
+    </div>
+    <div id="specific_data_placeholder" class="right_anchored_div" hidden>
+        <p id="point_data_placeholder"></p>
     </div>
 </body>
 

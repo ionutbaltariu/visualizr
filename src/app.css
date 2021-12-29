@@ -39,3 +39,22 @@ html * {
 .styled_input:hover {
     background-color: lightsteelblue;
 }
+
+.right_anchored_div {
+    padding: 2%;
+    border-width: 1%;
+    border-style: groove;
+    border-radius: 3%;
+    border-color: black;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 33%;
+    padding: 1%;
+}
+
+#point_data_placeholder {
+    text-align: left;
+    font-size: 12;
+}

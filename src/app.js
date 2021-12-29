@@ -4,6 +4,7 @@ let selected_y = "new_cases_today";
 let x_vals_holder = [];
 let y_vals_holder = [];
 let selection_options = [];
+let will_resize_on_point_click = false;
 
 /* set the dimensions and margins of the graph */
 const margin = {
@@ -45,6 +46,15 @@ function updateSelectedYValue() {
     init();
 }
 
+function removeUnderscoresAndCapitalize(source) {
+    const lowercase_no_underscores = source.replace(/_/g, " ").toLowerCase();
+    return lowercase_no_underscores.charAt(0).toUpperCase() + lowercase_no_underscores.slice(1);
+}
+
+function onPointClickResize() {
+    will_resize_on_point_click = document.getElementById("resizeOnClickEnabler").checked;
+}
+
 async function onload() {
     try {
         let promiseResponse = (await fetch("http://0.0.0.0:8000/"));
@@ -55,7 +65,7 @@ async function onload() {
 
 
         selection_options.forEach(option => {
-            const splitted = option.replace(/_/g, " ")
+            const splitted = option.replace(/_/g, " ");
             document.getElementById("x_values").innerHTML += `<option value="${option}">${splitted}</option>`;
             document.getElementById("y_values").innerHTML += `<option value="${option}">${splitted}</option>`;
         });
@@ -119,13 +129,29 @@ function init() {
     }
 
     const onclick = function(d) {
-        xVal = d3.select(this).attr("x");
-        yVal = d3.select(this).attr("y");
-        document.getElementById("buttonXlim").value = xVal;
-        document.getElementById("buttonYlim").value = yVal;
+        const xVal = d3.select(this).attr("x");
+        const yVal = d3.select(this).attr("y");
+        const index = d3.select(this).attr("index");
+        d3.select(this).attr("r", 1.5).style("border-style", "groove").style("border-width", "5px");
+        let stringified = '';
+        let fields_to_be_displayed = Reflect.ownKeys(json_data.covid_romania[0]);
+        /* delete unusable data in plots */
+        fields_to_be_displayed = fields_to_be_displayed.splice(0, selection_options.length - 4);
 
-        updatePlotX(xVal);
-        updatePlotY(yVal);
+        fields_to_be_displayed.forEach(option => {
+            if (filtered_data[index][option]) {
+                stringified += `${removeUnderscoresAndCapitalize(option)} : ${filtered_data[index][option]}<br>`;
+            }
+        });
+
+        document.getElementById("specific_data_placeholder").hidden = false;
+        document.getElementById("point_data_placeholder").innerHTML = stringified;
+        if (will_resize_on_point_click) {
+            document.getElementById("buttonXlim").value = xVal;
+            document.getElementById("buttonYlim").value = yVal;
+            updatePlotX(xVal);
+            updatePlotY(yVal);
+        }
     }
 
     /* append the svg object to the body of the page */
@@ -170,6 +196,7 @@ function init() {
         .attr("cy", function(d) {
             return y(d[selected_y]);
         })
+        .attr('index', function(d, i) { return +i; })
         .attr("r", 1.5)
         .style("fill", "#69b3a2")
         .on("mouseover", mouseover)
@@ -180,19 +207,31 @@ function init() {
     function updatePlotX(xlim) {
         x.domain([0, xlim]);
         xAxis.transition().duration(1000).call(d3.axisBottom(x));
+        refitPoints();
 
-        svg.selectAll("circle")
-            .data(filtered_data)
-            .transition()
-            .duration(1000)
-            .attr("cx", function(d) { return x(d[selected_x]); })
-            .attr("cy", function(d) { return y(d[selected_y]); });
     }
 
     function updatePlotY(ylim) {
         y.domain([0, ylim]);
         yAxis.transition().duration(1000).call(d3.axisLeft(y));
+        refitPoints();
+    }
 
+    function updatePlotXEvent() {
+        const xlim = this.value;
+        x.domain([0, xlim]);
+        xAxis.transition().duration(1000).call(d3.axisBottom(x));
+        refitPoints();
+    }
+
+    function updatePlotYEvent() {
+        const ylim = this.value;
+        y.domain([0, ylim]);
+        yAxis.transition().duration(1000).call(d3.axisLeft(y));
+        refitPoints();
+    }
+
+    function refitPoints() {
         svg.selectAll("circle")
             .data(filtered_data)
             .transition()
@@ -200,9 +239,6 @@ function init() {
             .attr("cx", function(d) { return x(d[selected_x]); })
             .attr("cy", function(d) { return y(d[selected_y]); });
     }
-
-    const updatePlotXEvent = updatePlotX.bind(this);
-    const updatePlotYEvent = updatePlotY.bind(this);
 
     // Add an event listener to the button created in the html part
     d3.select("#buttonXlim").on("input", updatePlotXEvent);
